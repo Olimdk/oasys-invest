@@ -23,3 +23,6 @@ release/
 # runtime
 /oasys-invest.log
 /tmp/tauri_engine.log
+
+# tauri generated schemas
+src-tauri/gen/
