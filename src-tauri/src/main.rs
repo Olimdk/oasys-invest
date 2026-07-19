@@ -32,21 +32,25 @@ fn log(msg: &str) {
 fn find_backend_dir(app: &tauri::AppHandle) -> Option<PathBuf> {
     let exe = std::env::current_exe().ok()?;
     let exe_dir = exe.parent()?.to_path_buf();
-
     let home = std::env::var("HOME").unwrap_or_else(|_| "/home/omeyer".into());
 
     let mut candidates: Vec<PathBuf> = Vec::new();
-    // 1. Bundled next to the executable (release / AppImage / deb resources).
+    // 1. Bundled next to the executable (AppImage).
     candidates.push(exe_dir.join("backend"));
-    // 2. Dev build: <repo>/backend when exe is in src-tauri/target/(debug|release).
+    // 2. Dev build: <repo>/backend.
     candidates.push(exe_dir.join("../../../backend"));
-    // 3. Installed repo location.
+    // 3. Installed repo location (local dev / source install).
     candidates.push(PathBuf::from(format!("{}/oasys-invest/backend", home)));
-    candidates.push(PathBuf::from(format!("{}/oasys-invest/backend", home)).join("..").join("backend"));
-    // 4. Tauri resource directory.
+    // 4. Debian/AppImage resource dir: <res>/backend or <res>/_up_/backend.
     if let Some(res) = app.path().resource_dir().ok() {
         candidates.push(res.join("backend"));
+        candidates.push(res.join("_up_").join("backend"));
+        // resource_dir sometimes points one level above the bundle root
+        candidates.push(res.join("..").join("backend"));
     }
+    // 5. Common system install location.
+    candidates.push(PathBuf::from("/usr/lib/OASYS Invest/_up_/backend"));
+    candidates.push(PathBuf::from("/opt/oasys-invest/backend"));
 
     for c in &candidates {
         if c.join(".venv").join("bin").join("python").exists() {

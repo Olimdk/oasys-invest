@@ -1,53 +1,67 @@
 #!/usr/bin/env bash
 # OASYS Invest — one-command installer.
-# Clones (if needed), builds the Python engine venv, installs the frontend +
-# Tauri shell, and drops an `oasys-invest` launcher on your PATH.
+# Downloads the latest release bundle and sets up the Python engine.
 set -euo pipefail
 
-REPO_URL="https://github.com/Olimdk/oasys-invest.git"
-DEFAULT_HOME="$HOME/oasys-invest"
+REPO="Olimdk/oasys-invest"
+INSTALL_PREFIX="${INSTALL_PREFIX:-/usr/local}"
 
-OASYS_INVEST_HOME="${OASYS_INVEST_HOME:-$DEFAULT_HOME}"
+echo "OASYS Invest installer"
 
-if [[ ! -d "$OASYS_INVEST_HOME" ]]; then
-  echo "Cloning OASYS Invest -> $OASYS_INVEST_HOME"
-  git clone "$REPO_URL" "$OASYS_INVEST_HOME"
-fi
-
-cd "$OASYS_INVEST_HOME"
-
-echo "Setting up Python engine venv..."
-if [[ ! -d backend/.venv ]]; then
-  python3 -m venv backend/.venv
-fi
-# shellcheck disable=SC1091
-source backend/.venv/bin/activate
-pip install -q -r backend/requirements.txt
-deactivate
-
-echo "Installing frontend + Tauri CLI..."
-npm install
-
-echo "Building native desktop app (this may take a few minutes)..."
-npm run tauri build
-
-# Launcher
-LAUNCHER="$OASYS_INVEST_HOME/oasys-invest-launcher.sh"
-cat > "$LAUNCHER" <<EOF
-#!/usr/bin/env bash
-# Launches the OASYS Invest desktop app.
-DIR="\$(cd "\$(dirname "\${BASH_SOURCE[0]}")" && pwd)"
-exec "\$DIR/src-tauri/target/release/oasys-invest" "\$@"
-EOF
-chmod +x "$LAUNCHER"
-
-# Symlink onto PATH if we can.
-if [[ -d "$HOME/.local/bin" ]]; then
-  ln -sf "$LAUNCHER" "$HOME/.local/bin/oasys-invest"
-  echo "Linked launcher -> $HOME/.local/bin/oasys-invest"
+# 1. Pick the right asset for this system.
+if command -v apt-get >/dev/null 2>&1; then
+  ASSET_PATTERN="\.deb$"
+  echo "Detected Debian/Ubuntu — will install the .deb package."
+elif command -v dnf >/dev/null 2>&1 || command -v yum >/dev/null 2>&1; then
+  ASSET_PATTERN="\.rpm$"
+  echo "Detected Fedora/RHEL — .rpm not published yet, falling back to AppImage."
+  ASSET_PATTERN="\.AppImage$"
 else
-  echo "Add this to your PATH or run: $LAUNCHER"
+  ASSET_PATTERN="\.AppImage$"
+  echo "Using the AppImage (portable)."
+fi
+
+# 2. Resolve the latest release download URL via the GitHub API.
+ASSET_URL=$(curl -fsSL "https://api.github.com/repos/${REPO}/releases/latest" \
+  | grep -o "https://github.com/${REPO}/releases/download/[^ \"']*${ASSET_PATTERN}" \
+  | head -1)
+
+if [ -z "${ASSET_URL:-}" ]; then
+  echo "ERROR: could not find a release asset for this system." >&2
+  exit 1
+fi
+
+echo "Downloading: ${ASSET_URL}"
+TMP=$(mktemp -d)
+trap 'rm -rf "$TMP"' EXIT
+curl -fLSL "${ASSET_URL}" -o "${TMP}/oasys-invest-asset"
+
+# 3. Install.
+if [[ "${ASSET_URL}" == *.deb ]]; then
+  sudo apt-get install -y "${TMP}/oasys-invest-asset" || sudo dpkg -i "${TMP}/oasys-invest-asset"
+  BACKEND_DIR="/usr/lib/OASYS Invest/_up_/backend"
+elif [[ "${ASSET_URL}" == *.AppImage ]]; then
+  chmod +x "${TMP}/oasys-invest-asset"
+  sudo mv "${TMP}/oasys-invest-asset" "${INSTALL_PREFIX}/bin/oasys-invest.AppImage"
+  sudo ln -sf "${INSTALL_PREFIX}/bin/oasys-invest.AppImage" "${INSTALL_PREFIX}/bin/oasys-invest"
+  BACKEND_DIR="${INSTALL_PREFIX}/bin/oasys-invest.AppImage"
+  # AppImage backend lives next to the executable when extracted; for portability
+  # we set up the venv in the user repo location instead:
+  BACKEND_DIR="$HOME/oasys-invest/backend"
+  mkdir -p "$HOME/oasys-invest"
+fi
+
+# 4. Ensure the Python engine venv exists (the bundle ships source, not the venv).
+echo "Setting up the Python engine virtualenv…"
+if [ -d "${BACKEND_DIR}" ] && [ -f "${BACKEND_DIR}/requirements.txt" ]; then
+  if [ ! -d "${BACKEND_DIR}/.venv" ]; then
+    python3 -m venv "${BACKEND_DIR}/.venv"
+  fi
+  # shellcheck disable=SC1091
+  source "${BACKEND_DIR}/.venv/bin/activate"
+  pip install -q -r "${BACKEND_DIR}/requirements.txt"
+  deactivate
 fi
 
 echo ""
-echo "OASYS Invest installed. Run: oasys-invest"
+echo "OASYS Invest installed. Launch it from your applications menu (OASYS Invest)."
