@@ -1,7 +1,7 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
   "productName": "OASYS Invest",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "identifier": "com.oasys.invest",
   "build": {
     "frontendDist": "../dist",
@@ -16,8 +16,8 @@
         "url": "http://127.0.0.1:8000",
         "width": 1280,
         "height": 800,
-        "minWidth": 900,
-        "minHeight": 600,
+        "minWidth": 640,
+        "minHeight": 480,
         "resizable": true,
         "fullscreen": false
       }
