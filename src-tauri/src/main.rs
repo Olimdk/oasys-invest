@@ -33,12 +33,17 @@ fn find_backend_dir(app: &tauri::AppHandle) -> Option<PathBuf> {
     let exe = std::env::current_exe().ok()?;
     let exe_dir = exe.parent()?.to_path_buf();
 
+    let home = std::env::var("HOME").unwrap_or_else(|_| "/home/omeyer".into());
+
     let mut candidates: Vec<PathBuf> = Vec::new();
     // 1. Bundled next to the executable (release / AppImage / deb resources).
     candidates.push(exe_dir.join("backend"));
-    // 2. Repo source tree: <repo>/backend when running from src-tauri/target/(debug|release).
+    // 2. Dev build: <repo>/backend when exe is in src-tauri/target/(debug|release).
     candidates.push(exe_dir.join("../../../backend"));
-    // 3. Tauri resource directory.
+    // 3. Installed repo location.
+    candidates.push(PathBuf::from(format!("{}/oasys-invest/backend", home)));
+    candidates.push(PathBuf::from(format!("{}/oasys-invest/backend", home)).join("..").join("backend"));
+    // 4. Tauri resource directory.
     if let Some(res) = app.path().resource_dir().ok() {
         candidates.push(res.join("backend"));
     }
