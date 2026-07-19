@@ -1,0 +1,25 @@
+# dependencies
+node_modules/
+.pnpm-store/
+
+# python
+__pycache__/
+*.pyc
+backend/.venv/
+backend/__pycache__/
+backend/data/
+backend/*.log
+backend/.pytest_cache/
+
+# tauri build artifacts
+src-tauri/target/
+dist/
+release/
+
+# os
+.DS_Store
+*.swp
+
+# runtime
+/oasys-invest.log
+/tmp/tauri_engine.log

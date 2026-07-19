@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Investor — Skyrocket Radar</title>
+  <link rel="preconnect" href="https://logo.clearbit.com"/>
+  <link rel="stylesheet" href="/static/styles.css"/>
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="logo-mark">▲</div>
+        <div>
+          <div class="brand-name">Invest<span>or</span></div>
+          <div class="brand-sub">Skyrocket Radar</div>
+        </div>
+      </div>
+      <nav class="nav">
+        <a class="nav-item active" data-view="home"><span class="ico">★</span> Top 25</a>
+        <a class="nav-item" data-view="research"><span class="ico">🔍</span> Research</a>
+        <a class="nav-item" data-view="trending"><span class="ico">🔥</span> Trending</a>
+        <a class="nav-item" data-view="traders"><span class="ico">👥</span> Copy Trading</a>
+        <a class="nav-item" data-view="alerts"><span class="ico">🔔</span> Alerts</a>
+        <a class="nav-item" data-view="portfolio"><span class="ico">💼</span> Portfolio</a>
+      </nav>
+      <div class="sidebar-foot">
+        <div class="net-dot" id="net-dot"></div>
+        <span id="net-label">connecting…</span>
+      </div>
+    </aside>
+
+    <main class="content">
+      <!-- HOME: TOP 25 -->
+      <section class="view active" id="view-home">
+        <header class="page-head">
+          <div>
+            <h1>Top 25 — Highest Chance to <span class="grad">Skyrocket</span></h1>
+            <p class="muted">Long-horizon ranking. Fundamentals + momentum + analyst upside, scored transparently.</p>
+          </div>
+          <button class="btn" id="refresh-top">↻ Refresh</button>
+        </header>
+
+        <div class="settings-row">
+          <label class="muted">Region
+            <select id="set-region">
+              <option value="US" selected>US</option>
+              <option value="GB">GB</option>
+              <option value="DE">DE</option>
+              <option value="JP">JP</option>
+              <option value="AU">AU</option>
+              <option value="CA">CA</option>
+            </select>
+          </label>
+          <label class="muted chk"><input type="checkbox" id="set-curated" checked/> Include curated universe</label>
+        </div>
+
+        <div id="track-record" class="track-card" style="display:none">
+          <div class="track-head">📈 Model Track Record <span class="muted" style="font-size:.78rem">(1y realized, transparent)</span></div>
+          <div class="track-stats">
+            <div class="tk"><div class="tk-val" id="tk-agree">—</div><div class="tk-lbl">Signal agreement</div></div>
+            <div class="tk"><div class="tk-val" id="tk-ret">—</div><div class="tk-lbl">Avg 1y return</div></div>
+            <div class="tk"><div class="tk-val" id="tk-size">—</div><div class="tk-lbl">Universe</div></div>
+          </div>
+        </div>
+
+        <details class="about-card">
+          <summary>How the Skyrocket score works</summary>
+          <div class="about-body">
+            <p>Each ticker gets a <b>0–100</b> score (50 = average) from a transparent model — no black box:</p>
+            <ul>
+              <li><b>+18</b> Confirmed uptrend (price above 50d &amp; 200d averages)</li>
+              <li><b>+12</b> Healthy momentum (RSI 45–60); <b>+8</b> oversold (RSI &lt;35)</li>
+              <li><b>+20</b> Analyst target implies &gt;20% upside; <b>+12</b> if &gt;10%</li>
+              <li><b>+10</b> Earnings growth &gt;15%; <b>+8</b> Revenue growth &gt;10%</li>
+              <li><b>+8</b> Near 52-week low (margin of safety); <b>−8</b> near high</li>
+              <li><b>+10</b> Rule-based signal agrees (BUY); <b>−10</b> if SELL</li>
+            </ul>
+            <p class="muted">Grades: <span class="chip-grade A">A</span> elite · <span class="chip-grade B">B</span> strong · <span class="chip-grade C">C</span> watch · <span class="chip-grade D">D</span> weak · <span class="chip-grade F">F</span> avoid. Long-horizon view — not day-trading. When live data is unavailable, curated snapshots are shown and flagged.</p>
+          </div>
+        </details>
+
+        <div class="legend">
+          <span class="chip-grade A">A elite</span>
+          <span class="chip-grade B">B strong</span>
+          <span class="chip-grade C">C watch</span>
+          <span class="chip-grade D">D weak</span>
+          <span class="chip-grade F">F avoid</span>
+        </div>
+        <div id="top-list" class="top-list"><div class="loading">Scoring the market…</div></div>
+      </section>
+
+      <!-- RESEARCH -->
+      <section class="view" id="view-research">
+        <header class="page-head">
+          <div>
+            <h1>Stock Research</h1>
+            <p class="muted">Chart, valuation, analyst targets, and a rule-based signal.</p>
+          </div>
+          <div class="search">
+            <input id="sym-input" type="text" placeholder="AAPL, NVDA, BTC-USD, TLT, GLD" value="AAPL"/>
+            <button id="search-btn" class="btn">Analyze</button>
+          </div>
+        </header>
+        <div id="research-content"><p class="muted">Enter a symbol above and hit Analyze.</p></div>
+      </section>
+
+      <!-- TRENDING -->
+      <section class="view" id="view-trending">
+        <header class="page-head">
+          <div><h1>Trending Tickers</h1><p class="muted">What the community is watching right now.</p></div>
+          <button class="btn" id="refresh-trending">↻ Refresh</button>
+        </header>
+        <div id="trending-content" class="card-grid"></div>
+      </section>
+
+      <!-- COPY TRADING -->
+      <section class="view" id="view-traders">
+        <header class="page-head">
+          <div><h1>Copy Trading</h1><p class="muted">Follow renowned public investors and log their ideas.</p></div>
+        </header>
+        <div id="traders-content" class="card-grid"></div>
+        <div id="trader-detail"></div>
+      </section>
+
+      <!-- ALERTS -->
+      <section class="view" id="view-alerts">
+        <header class="page-head">
+          <div><h1>Price Alerts</h1><p class="muted">Get notified when a ticker crosses your target.</p></div>
+          <button class="btn" id="check-alerts">⚡ Check now</button>
+        </header>
+        <div class="card">
+          <h3>New Alert</h3>
+          <div class="form-row">
+            <input id="al-symbol" placeholder="SYMBOL" value="AAPL"/>
+            <select id="al-cond"><option value="above">price above</option><option value="below">price below</option></select>
+            <input id="al-price" type="number" step="0.01" placeholder="target price" value="200"/>
+            <button class="btn" id="al-add">Add</button>
+          </div>
+          <div id="al-feed" class="muted" style="margin-top:8px"></div>
+        </div>
+        <div class="card">
+          <h3>Active Alerts</h3>
+          <div id="alerts-list"></div>
+        </div>
+      </section>
+
+      <!-- PORTFOLIO -->
+      <section class="view" id="view-portfolio">
+        <header class="page-head">
+          <div><h1>Portfolio</h1><p class="muted">Track value, gain, and allocation.</p></div>
+          <button class="btn" id="pf-btn">Analyze</button>
+        </header>
+        <div class="card">
+          <label class="muted">Positions (SYMBOL, QTY, AVG_COST, CATEGORY)</label>
+          <textarea id="pf-positions" rows="6">AAPL, 10, 150, Stocks
+SPY, 5, 400, ETFs
+BTC-USD, 0.1, 40000, Crypto
+TLT, 8, 95, Bonds
+GLD, 3, 330, Commodities</textarea>
+          <label class="muted">Current prices (SYMBOL=PRICE)</label>
+          <textarea id="pf-prices" rows="4">AAPL=190, SPY=470, BTC-USD=55000, TLT=92, GLD=350</textarea>
+          <div id="pf-result" style="margin-top:12px"></div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <div id="toast" class="toast"></div>
+  <script src="/static/app.js"></script>
+</body>
+</html>
