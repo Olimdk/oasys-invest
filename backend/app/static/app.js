@@ -153,7 +153,12 @@ async function loadTop(){
     });
   }catch(err){
     setNet(false);
-    el.innerHTML = '<div class="loading down">'+err.message+'</div>';
+    if((loadTop._tries = (loadTop._tries||0) + 1) <= 15){
+      setTimeout(loadTop, 1000 * Math.min(loadTop._tries, 5));
+      el.innerHTML = '<div class="loading">Connecting to engine\u2026 ('+loadTop._tries+')</div>';
+    } else {
+      el.innerHTML = '<div class="loading down">'+err.message+'</div>';
+    }
   }
 }
 $("refresh-top").addEventListener("click", loadTop);
@@ -286,18 +291,24 @@ function drawChart(chart){
 }
 
 /* ---------- COPY TRADING ---------- */
-async function loadTraders(){
+async function loadTraders(filter){
+  filter = filter || "All";
   const el = $("traders-content");
-  el.innerHTML = '<div class="loading">Loading…</div>';
+  el.innerHTML = '<div class="loading">Loading\u2026</div>';
   try{
     const list = await getj("/api/traders");
-    el.innerHTML = list.map(t=>`
+    const shown = filter==="All" ? list : list.filter(t=>(t.platform||"Investor")===filter);
+    const platforms = ["All", ...Array.from(new Set(list.map(t=>t.platform||"Investor")))];
+    const tabs = platforms.map(p=>`<span class="chip ${p===filter?'on':''}" data-pf="${p}">${p}</span>`).join("");
+    el.innerHTML = `<div class="filter-row">${tabs}</div>` + shown.map(t=>`
       <div class="mini-card trader" data-id="${t.id}">
         <div class="mc-top"><span class="sym">${t.name}</span>
+          <span class="pf-badge pf-${(t.platform||"Investor").toLowerCase()}">${t.platform||"Investor"}</span>
           ${t.followed?'<span class="badge BUY">following</span>':'<span class="follow-btn" data-id="'+t.id+'">+ Follow</span>'}</div>
         <div class="mc-name">${t.style}</div>
         <div class="muted" style="font-size:.8rem;margin-top:6px">${t.known_for||""}</div>
       </div>`).join("");
+    el.querySelectorAll(".chip[data-pf]").forEach(c=>c.addEventListener("click",()=>loadTraders(c.dataset.pf)));
     el.querySelectorAll(".mini-card.trader").forEach(c=>c.addEventListener("click",(e)=>{
       if(e.target.classList.contains("follow-btn")) return;
       showTrader(c.dataset.id);
@@ -305,7 +316,7 @@ async function loadTraders(){
     el.querySelectorAll(".follow-btn").forEach(b=>b.addEventListener("click",async(e)=>{
       e.stopPropagation();
       await postj("/api/follow/"+b.dataset.id);
-      toast("Now following "+b.dataset.id, "ok"); loadTraders();
+      toast("Now following "+b.dataset.id, "ok"); loadTraders(filter);
     }));
   }catch(err){ el.innerHTML='<div class="loading down">'+err.message+'</div>'; }
 }

@@ -182,3 +182,13 @@ th{color:var(--muted);font-weight:600;font-size:.78rem;text-transform:uppercase;
   .rank-row{grid-template-columns:28px 1.4fr 60px 1fr;grid-row-gap:6px}
   .rk-spark,.rk-reasons,.rk-act{display:none}
 }
+
+/* ---------- copy-trading filters + platform badges ---------- */
+.filter-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+.chip{display:inline-block;padding:5px 12px;border:1px solid var(--border);border-radius:999px;
+  font-size:.82rem;cursor:pointer;color:var(--muted);background:var(--panel2);user-select:none}
+.chip.on{background:var(--accent,#5b9dff);color:#fff;border-color:transparent}
+.pf-badge{font-size:.68rem;padding:2px 8px;border-radius:999px;margin-left:8px;font-weight:700;letter-spacing:.02em}
+.pf-investor{background:rgba(91,157,255,.16);color:#7fb0ff}
+.pf-tradingview{background:rgba(22,199,132,.16);color:#16c784}
+.pf-daytrader{background:rgba(255,159,67,.18);color:#ff9f43}
